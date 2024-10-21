@@ -2,15 +2,15 @@ import http from 'http';
 import app from './app';
 import connectDB from './utils/db-connection.util';
 import logger from './utils/logger.util';
-import { PORT } from './config/environment';
+import environment from './config/environment';
 
 const startServer = async () => {
   try {
     await connectDB();
     
     const server = http.createServer(app);
-    server.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`);
+    server.listen(environment.PORT, () => {
+      logger.info(`Server running on port ${environment.PORT}`);
     });
 
     process.on('unhandledRejection', (reason: Error) => {

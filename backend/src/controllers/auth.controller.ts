@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
 import { BadRequestError, UnauthorizedError, NotFoundError } from '../utils/custom-errors.util';
-import { JWT_SECRET } from '../config/environment';
+import environment from '../config/environment';
 import { setTokenCookie, clearTokenCookie } from '../middleware/auth.middleware';
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
@@ -23,7 +23,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     if (!user || !(await user.comparePassword(password))) {
       throw new UnauthorizedError('Invalid credentials');
     }
-    const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ userId: user._id, role: user.role }, environment.JWT_SECRET, { expiresIn: '1d' });
     setTokenCookie(res, token);
     res.json({ message: 'Login successful', user: { id: user._id, role: user.role } });
   } catch (error) {

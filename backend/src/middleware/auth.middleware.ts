@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError, ForbiddenError } from '../utils/custom-errors.util';
-import { JWT_SECRET } from '../config/environment';
+import environment from '../config/environment';
 
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.token;
@@ -11,7 +11,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
+    const decoded = jwt.verify(token, environment.JWT_SECRET) as { userId: string; role: string };
     (req as any).user = decoded;
     next();
   } catch (error) {
@@ -19,12 +19,6 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   }
 };
 
-export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if ((req as any).user.role !== 'admin') {
-    return next(new ForbiddenError('Admin access required'));
-  }
-  next();
-};
 
 export const setTokenCookie = (res: Response, token: string) => {
   // Set the token as an HTTP-only cookie

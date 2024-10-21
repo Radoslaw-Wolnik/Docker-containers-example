@@ -1,36 +1,35 @@
+// src/utils/db-connection.util.ts
+
 import mongoose from 'mongoose';
-import enviorement from '../config/environment';
+import environment from '../config/environment';
+import logger from './logger.util';
 
 // Function to connect to MongoDB
 const connectToMongoDB = async (): Promise<typeof mongoose> => {
-
-  return mongoose.connect(enviorement.database.uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  } as mongoose.ConnectOptions);
+  return mongoose.connect(environment.database.uri, environment.database.options);
 };
 
-// function to handle retry logic
+// Function to handle retry logic
 const connectDB = async (): Promise<void> => {
-  for (let attempt = 1; attempt <= 5; attempt++) {
+  for (let attempt = 1; attempt <= environment.MAX_CONNECTION_ATTEMPTS; attempt++) {
     try {
       await connectToMongoDB();
-      console.log('Connected to MongoDB');
+      logger.info('Connected to MongoDB');
       return;
     } catch (error) {
-      console.error(`Attempt ${attempt} - Error connecting to MongoDB:`, (error as Error).message);
-      if (attempt < 5) {
-        console.log('Retrying in 5 seconds...');
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+      logger.error(`Attempt ${attempt} - Error connecting to MongoDB:`, (error as Error).message);
+      if (attempt < environment.MAX_CONNECTION_ATTEMPTS) {
+        logger.info(`Retrying in ${environment.CONNECTION_RETRY_DELAY / 1000} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, environment.CONNECTION_RETRY_DELAY));
       } else {
-        console.error('Failed to connect to MongoDB after multiple attempts');
+        logger.error('Failed to connect to MongoDB after multiple attempts');
         process.exit(1);
       }
     }
   }
 };
 
-// function for health check
+// Function for health check
 export const checkDBHealth = (): string => {
   const dbStatus = mongoose.connection.readyState;
   switch (dbStatus) {

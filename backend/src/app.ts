@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { FRONTEND_URL } from './config/environment';
+import environment from './config/environment';
 import logger from './utils/logger.util';
 
 import userRoutes from './routes/user.routes';
@@ -13,7 +13,7 @@ import { addRequestId } from './middleware/request-id.middleware';
 const app = express();
 
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: environment.FRONTEND_URL,
   credentials: true,
 }));
 

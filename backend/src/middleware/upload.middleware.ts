@@ -2,7 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
-import upload from './multer.config';
+import upload from './multer.middleware';
 import { BadRequestError } from '../utils/custom-errors.util';
 
 export const uploadProfilePicture = (req: Request, res: Response, next: NextFunction) => {
