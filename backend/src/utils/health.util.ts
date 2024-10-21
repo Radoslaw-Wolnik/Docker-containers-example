@@ -11,8 +11,6 @@ export const checkOverallHealth = async (): Promise<boolean> => {
       throw new Error('Database connection is not healthy');
     }
 
-    // Verify email service
-    await verifyEmailService();
 
     // Add more checks as needed for other services (e.g., Redis, external APIs)
 
@@ -20,15 +18,5 @@ export const checkOverallHealth = async (): Promise<boolean> => {
   } catch (error) {
     logger.error('Overall health check failed:', error);
     return false;
-  }
-};
-
-export const verifyEmailService = async(): Promise<void> => {
-  try {
-    await environment.email.service.verifyConnection();
-    logger.info('Email service connection verified');
-  } catch (error) {
-    logger.error('Failed to verify email service connection', { error });
-    throw error; // Propagate the error to be caught by the overall health check
   }
 };
