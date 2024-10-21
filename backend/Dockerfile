@@ -19,13 +19,8 @@ COPY . .
 # Development stage
 FROM base AS development
 
-# Install ts globaly
+# Install ts globally
 RUN npm install -g tsx@latest typescript@latest
-
-
-# Copy additional development-specific configuration files
-# COPY nodemon.json .
-# or insted in volumes in docekr-compose
 
 # Make uploads dir in development setup
 RUN mkdir -p /app/uploads
@@ -34,11 +29,7 @@ RUN mkdir -p /app/uploads
 EXPOSE 5000
 
 # Command to run the application in development mode
-#CMD ["npm", "run", "devstart"]
-# Use ts-node-dev for development
-#CMD ["npx", "nodemon", "--exec", "node", "--loader", "ts-node/esm", "src/server.ts"]
 CMD ["npm", "run", "dev"]
-
 
 # Build stage
 FROM base AS build
@@ -71,4 +62,3 @@ ENV NODE_ENV=production
 
 # Command to run the application in production mode
 CMD ["npm", "run", "start"]
-# CMD ["node", "dist/server.js"]

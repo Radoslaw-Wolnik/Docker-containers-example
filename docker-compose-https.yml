@@ -50,15 +50,15 @@ services:
       - "traefik.http.routers.frontend.tls=true"
 
   backend:
-    image: backend-image:latest
+    build:
+      context: ./backend
+      target: ${NODE_ENV}
     environment:
       - NODE_ENV=${NODE_ENV}
       - PORT=5000
       - DOMAIN_NAME=${DOMAIN_NAME}
       - FRONTEND=https://${DOMAIN_NAME}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - MONGODB_URI=mongodb://${MONGO_INITDB_USER}:${MONGO_INITDB_PASSWORD}@mongo:27017/${MONGO_INITDB_DATABASE}?authSource=${MONGO_INITDB_DATABASE}
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - EMAIL_HOST=${EMAIL_HOST}
@@ -85,12 +85,16 @@ services:
   mongo:
     image: mongo:6.0
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${DB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=${DB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+      - MONGO_INITDB_USER=${MONGO_INITDB_USER}
+      - MONGO_INITDB_PASSWORD=${MONGO_INITDB_PASSWORD}
     volumes:
       - mongo-data:/data/db
       - ./backend/mongo/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
+      - ./backend/mongo/mongod.conf:/etc/mongod.conf:ro
+    command: ["mongod", "--config", "/etc/mongod.conf"]
     networks:
       - backend-network
 
