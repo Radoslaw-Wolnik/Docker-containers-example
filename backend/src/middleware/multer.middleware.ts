@@ -1,31 +1,40 @@
+// src/middleware/multer.config.ts
+
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 import { BadRequestError } from '../utils/custom-errors.util';
-import { Request } from 'express';
+import environment from '../config/environment';
 
-// Define custom callback types for multer
-type DestinationCallback = (error: Error | null, destination: string) => void;
-type FileNameCallback = (error: Error | null, filename: string) => void;
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (file.fieldname === 'profilePicture') {
+      cb(null, path.join(environment.UPLOAD_PATH, 'profile-pictures'));
+    } else if (file.fieldname === 'blogImage') {
+      cb(null, path.join(environment.UPLOAD_PATH, 'blog-images'));
+    } else {
+      cb(new BadRequestError('Invalid field name for file upload'), '');
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
 
-// General file filter function for checking allowed mimetypes
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
-  if (allowedMimes.includes(file.mimetype)) {
+const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
-    cb(new BadRequestError('Invalid file type. Only JPEG, PNG, and GIF are allowed.'));
+    cb(new BadRequestError('Only image files are allowed'));
   }
 };
 
-// Utility to get multer middleware based on custom storage engine
-export const getMulterMiddleware = (storage: multer.StorageEngine) => {
-  return multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-      fileSize: 5 * 1024 * 1024 // 5MB size limit
-    }
-  });
-};
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+export default upload;

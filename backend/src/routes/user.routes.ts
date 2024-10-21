@@ -1,17 +1,14 @@
 import express from 'express';
+import { updateProfile, updateProfilePicture, deactivateAccount, getOtherUserProfile, getUserOwnProfile } from '../controllers/user.controller';
 import { authenticateJWT } from '../middleware/auth.middleware';
-import { getUserProfile, updateProfile, getAllUsers, getUserById, deleteUser } from '../controllers/user.controller';
-import { uploadProfileImage } from '../middleware/upload.middleware';
-import { isAdmin } from '@/middleware/role.middleware';
+import { uploadProfilePicture } from '../middleware/upload.middleware';
 
 const router = express.Router();
 
-router.use(authenticateJWT);
-
-router.get('/users/profile', authenticateJWT, getUserProfile);
-router.put('/users/profile', authenticateJWT, uploadProfileImage, updateProfile);
-router.get('/users', authenticateJWT, isAdmin, getAllUsers);
-router.get('/users/:id', authenticateJWT, isAdmin, getUserById);
-router.delete('/users/:id', authenticateJWT, isAdmin, deleteUser);
+router.get('/users/:id', authenticateJWT, getOtherUserProfile);
+router.get('/me', authenticateJWT, getUserOwnProfile);
+router.put('/profile', authenticateJWT, updateProfile);
+router.put('/profile-picture', authenticateJWT, uploadProfilePicture, updateProfilePicture);
+router.post('/deactivate', authenticateJWT, deactivateAccount);
 
 export default router;

@@ -1,54 +1,62 @@
-import { Response, NextFunction } from 'express';
-// import { AuthRequest } from '../types/global';
-import BlogPost, { IBlogPostDocument } from '../models/blog-post.model';
-import { NotFoundError, BadRequestError, InternalServerError } from '../utils/custom-errors.util';
-import logger from '../utils/logger.util';
+// src/controllers/blog-post.controller.ts
 
+import { Request, Response, NextFunction } from 'express';
+import BlogPost from '../models/blog-post.model';
+import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/custom-errors.util';
 
-export const createBlogPost = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const createBlogPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { title, content } = req.body;
+    const author = (req as any).user.userId;
+    
     const blogPost = new BlogPost({
-      ...req.body,
-      author: req.user!._id,
-      images: req.files ? (req.files as Express.Multer.File[]).map(file => file.path.replace('public/', '')) : []
+      title,
+      content: JSON.parse(content),
+      author
     });
+
+    if (req.file) {
+      const imagePath = '/' + req.file.path.replace(/\\/g, '/');
+      blogPost.content.push({
+        type: 'photo',
+        content: imagePath
+      });
+    }
+
     await blogPost.save();
-    logger.info(`Blog post created: ${blogPost._id}`, { userId: req.user!._id });
     res.status(201).json(blogPost);
   } catch (error) {
     next(error);
   }
 };
 
-export const getBlogPosts = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const getBlogPosts = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const tag = req.query.tag as string | undefined;
-
-    const query = tag ? { tags: tag } : {};
-    const totalPosts = await BlogPost.countDocuments(query);
-    const totalPages = Math.ceil(totalPosts / limit);
-
-    const blogPosts = await BlogPost.find(query)
+    
+    const blogPosts = await BlogPost.find()
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
-
+      .limit(limit)
+      .populate('author', 'username');
+    
+    const total = await BlogPost.countDocuments();
+    
     res.json({
       blogPosts,
       currentPage: page,
-      totalPages,
-      totalPosts
+      totalPages: Math.ceil(total / limit),
+      totalPosts: total
     });
   } catch (error) {
-    next(new InternalServerError('Error fetching blog posts'));
+    next(error);
   }
-}
+};
 
-export const getBlogPostById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const getBlogPostById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const blogPost = await BlogPost.findById(req.params.id);
+    const blogPost = await BlogPost.findById(req.params.id).populate('author', 'username');
     if (!blogPost) {
       throw new NotFoundError('Blog post not found');
     }
@@ -56,62 +64,54 @@ export const getBlogPostById = async (req: AuthRequest, res: Response, next: Nex
   } catch (error) {
     next(error);
   }
-}
+};
 
-export const updateBlogPost = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const updateBlogPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { title, content } = req.body;
     const blogPost = await BlogPost.findById(req.params.id);
+    
     if (!blogPost) {
       throw new NotFoundError('Blog post not found');
     }
-
-    if (blogPost.author.toString() !== req.user!.id.toString() && req.user!.role !== 'admin') {
-      throw new BadRequestError('You do not have permission to update this post');
+    
+    if (blogPost.author.toString() !== (req as any).user.userId) {
+      throw new ForbiddenError('You can only edit your own blog posts');
     }
-
-    Object.assign(blogPost, req.body);
+    
+    blogPost.title = title;
+    blogPost.content = JSON.parse(content);
+    
+    if (req.file) {
+      const imagePath = '/' + req.file.path.replace(/\\/g, '/');
+      blogPost.content.push({
+        type: 'photo',
+        content: imagePath
+      });
+    }
+    
     await blogPost.save();
-
-    logger.info(`Blog post updated: ${req.params.id}`, { userId: req.user!._id });
     res.json(blogPost);
   } catch (error) {
     next(error);
   }
-}
+};
 
-export const deleteBlogPost = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const deleteBlogPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const blogPost = await BlogPost.findById(req.params.id);
+    
     if (!blogPost) {
       throw new NotFoundError('Blog post not found');
     }
-
-    if (blogPost.author.toString() !== req.user!.id.toString() && req.user!.role !== 'admin') {
-      throw new BadRequestError('You do not have permission to delete this post');
+    
+    if (blogPost.author.toString() !== (req as any).user.userId && (req as any).user.role !== 'admin') {
+      throw new ForbiddenError('You can only delete your own blog posts or you must be an admin');
     }
-
+    
     await blogPost.deleteOne();
-    logger.info(`Blog post deleted: ${req.params.id}`, { userId: req.user!._id });
-    res.status(204).send();
+    res.json({ message: 'Blog post deleted successfully' });
   } catch (error) {
     next(error);
   }
-}
-
-export const searchBlogPosts = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const { query } = req.query;
-    if (typeof query !== 'string') {
-      throw new BadRequestError('Invalid search query');
-    }
-
-    const results = await BlogPost.find(
-      { $text: { $search: query } },
-      { score: { $meta: 'textScore' } }
-    ).sort({ score: { $meta: 'textScore' } });
-
-    res.json(results);
-  } catch (error) {
-    next(error);
-  }
-}
+};

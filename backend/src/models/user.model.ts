@@ -1,26 +1,31 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-import environment from '../config/environment';
 
-export interface IUserDocument extends Document {
+export interface IUser extends Document {
   username: string;
+  email: string;
   password: string;
-  role: 'admin';
+  role: 'admin' | 'user';
+  profilePicture?: string;
+  isActive: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-interface IUserModel extends mongoose.Model<IUserDocument> {
-  createDefaultAdmin(): Promise<IUserDocument>;
-}
-
-const userSchema = new Schema<IUserDocument>({
+const userSchema = new Schema<IUser>({
   username: { 
     type: String, 
-    unique: true,
-    required: true,
+    required: true, 
+    unique: true, 
     trim: true,
     minlength: [3, 'Username must be at least 3 characters long'],
     maxlength: [30, 'Username cannot exceed 30 characters'],
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true,
   },
   password: { 
     type: String, 
@@ -29,9 +34,17 @@ const userSchema = new Schema<IUserDocument>({
   },
   role: { 
     type: String, 
-    enum: ['admin'], 
-    default: 'admin' 
+    enum: ['admin', 'user'], 
+    default: 'user' 
   },
+  profilePicture: {
+    type: String,
+    default: null
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  }
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {
@@ -46,37 +59,4 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.statics.createDefaultAdmin = async function(): Promise<IUserDocument> {
-  const defaultAdminUsername = environment.auth.defaultAdminUsername;
-  const defaultAdminPassword = environment.auth.defaultAdminPassword;
-
-  if (!defaultAdminUsername || !defaultAdminPassword) {
-    throw new Error('Default admin credentials are not set in environment variables');
-  }
-
-  const existingAdmin = await this.findOne({ username: defaultAdminUsername });
-
-  if (existingAdmin) {
-    existingAdmin.password = defaultAdminPassword;
-    await existingAdmin.save();
-    return existingAdmin;
-  }
-
-  const newAdmin = new this({
-    username: defaultAdminUsername,
-    password: defaultAdminPassword,
-    role: 'admin'
-  });
-
-  await newAdmin.save();
-  return newAdmin;
-};
-
-// Automatically remove the password field when calling `toJSON` or `toObject`
-userSchema.methods.toJSON = function() {
-  const user = this.toObject(); // Cast to type-safe object with optional password
-  delete user.password;
-  return user;
-};
-
-export default mongoose.model<IUserDocument, IUserModel>('User', userSchema);
+export default mongoose.model<IUser>('User', userSchema);

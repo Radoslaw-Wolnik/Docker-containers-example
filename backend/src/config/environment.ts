@@ -1,28 +1,16 @@
 // src/config/environment.ts
 
-import { databaseConfig, DatabaseConfig } from './database.config';
-import { authConfig, AuthConfig } from './auth.config';
-import { emailConfig, EmailConfig } from './email.config';
-import { appConfig, AppConfig } from './app.config';
-import { EmailService } from '../services/email.service';
+import dotenv from 'dotenv';
 
-interface Enviorement {
-  database: DatabaseConfig;
-  auth: AuthConfig;
-  email: EmailConfig & {
-    service: EmailService
-  }
-  app: AppConfig;
-}
+dotenv.config();
 
-export const environment: Enviorement = {
-  database: databaseConfig,
-  auth: authConfig,
-  email: { 
-    ...emailConfig,
-    service: EmailService.getInstance(), 
-  },
-  app: appConfig,
+const environment = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: parseInt(process.env.PORT || '5000', 10),
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/blog_db',
+  JWT_SECRET: process.env.JWT_SECRET || 'your_jwt_secret',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+  UPLOAD_PATH: process.env.UPLOAD_PATH || 'uploads/'
 };
 
 export default environment;
