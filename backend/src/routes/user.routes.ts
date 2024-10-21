@@ -1,23 +1,17 @@
-import express, { Router } from 'express';
-import  { authenticateJWT } from '../middleware/auth.middleware';
-import { uploadProfilePicture } from '../middleware/upload.middleware';
-import { multerErrorHandler } from '../middleware/multer.middleware';
-import { 
-  getUserOwnProfile, 
-  saveProfilePicture, 
-  updateProfile,
+import express from 'express';
+import { authenticateJWT } from '../middleware/auth.middleware';
+import { getUserProfile, updateProfile, getAllUsers, getUserById, deleteUser } from '../controllers/user.controller';
+import { uploadProfileImage } from '../middleware/upload.middleware';
+import { isAdmin } from '@/middleware/role.middleware';
 
-} from '../controllers/user.controller.js';
+const router = express.Router();
 
-
-const router: Router = express.Router();
-
-// only for logged-in users
 router.use(authenticateJWT);
 
-router.get('/me', getUserOwnProfile);
-router.put('/upload-profile-picture', multerErrorHandler(uploadProfilePicture), saveProfilePicture);
-
-router.put('/profile', updateProfile);
+router.get('/users/profile', authenticateJWT, getUserProfile);
+router.put('/users/profile', authenticateJWT, uploadProfileImage, updateProfile);
+router.get('/users', authenticateJWT, isAdmin, getAllUsers);
+router.get('/users/:id', authenticateJWT, isAdmin, getUserById);
+router.delete('/users/:id', authenticateJWT, isAdmin, deleteUser);
 
 export default router;
