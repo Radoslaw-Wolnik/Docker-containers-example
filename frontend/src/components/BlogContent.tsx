@@ -2,6 +2,7 @@
 import React from 'react';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { BlogContent as BlogContentType } from '../types/global';
 
 // Import languages you want to use
 import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
@@ -14,7 +15,7 @@ SyntaxHighlighter.registerLanguage('typescript', typescript);
 SyntaxHighlighter.registerLanguage('python', python);
 
 interface BlogContentProps {
-  content: BlogContent[];
+  content: BlogContentType[];
 }
 
 const BlogContent: React.FC<BlogContentProps> = ({ content }) => {

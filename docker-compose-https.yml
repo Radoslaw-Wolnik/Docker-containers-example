@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   reverse-proxy:
-    image: traefik:v3.0
+    image: traefik:v2.9
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -11,19 +11,20 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--providers.file.directory=/etc/traefik/dynamic_conf"
       - "--providers.file.watch=true"
-      - "--log.level=INFO"
-      - "--accesslog=true"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"  # Traefik dashboard
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./certs:/certs:ro"
       - "./traefik_dynamic_conf:/etc/traefik/dynamic_conf:ro"
+      - "${SSL_CERT_PATH:-./certs/localhost.crt}:/certs/cert.pem:ro"
+      - "${SSL_KEY_PATH:-./certs/localhost.key}:/certs/key.pem:ro"
     networks:
       - frontend-network
       - backend-network
+    environment:
+      - CERT_RESOLVER=${CERT_RESOLVER:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN_NAME}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
@@ -45,7 +46,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${DOMAIN_NAME}`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls=true"
 

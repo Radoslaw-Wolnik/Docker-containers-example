@@ -1,4 +1,3 @@
-// src/components/BlogTagFilter.tsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -8,16 +7,19 @@ interface BlogTagFilterProps {
 
 const BlogTagFilter: React.FC<BlogTagFilterProps> = ({ tags }) => {
   const location = useLocation();
-  const currentTag = new URLSearchParams(location.search).get('tag');
+  const searchParams = new URLSearchParams(location.search);
+  const currentTag = searchParams.get('tag');
 
   return (
-    <div className="mb-6">
-      <h2 className="text-xl font-semibold mb-2">Filter by Tag</h2>
+    <div className="space-y-2">
+      <h3 className="text-lg font-medium text-gray-900">Filter by Tag</h3>
       <div className="flex flex-wrap gap-2">
         <Link
           to="/blog"
-          className={`px-3 py-1 rounded ${
-            !currentTag ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          className={`px-3 py-1 rounded-full text-sm ${
+            !currentTag
+              ? 'bg-primary-100 text-primary-800'
+              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
           }`}
         >
           All
@@ -26,8 +28,10 @@ const BlogTagFilter: React.FC<BlogTagFilterProps> = ({ tags }) => {
           <Link
             key={tag}
             to={`/blog?tag=${encodeURIComponent(tag)}`}
-            className={`px-3 py-1 rounded ${
-              currentTag === tag ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            className={`px-3 py-1 rounded-full text-sm ${
+              currentTag === tag
+                ? 'bg-primary-100 text-primary-800'
+                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
             }`}
           >
             {tag}

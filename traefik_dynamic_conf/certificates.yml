@@ -1,12 +1,12 @@
 tls:
   certificates:
-    - certFile: /certs/localhost.crt
-      keyFile: /certs/localhost.key
+    - certFile: /certs/cert.pem
+      keyFile: /certs/key.pem
   stores:
     default:
       defaultCertificate:
-        certFile: /certs/localhost.crt
-        keyFile: /certs/localhost.key
+        certFile: /certs/cert.pem
+        keyFile: /certs/key.pem
 
 http:
   middlewares:
@@ -17,25 +17,25 @@ http:
 
   routers:
     http-catchall:
-      rule: hostregexp(`{host:.+}`)
-      entrypoints:
+      rule: "hostregexp(`{host:.+}`)"
+      entryPoints:
         - web
       middlewares:
         - redirect-to-https
       service: noop@internal
 
     websecure-catchall:
-      rule: hostregexp(`{host:.+}`)
-      entrypoints:
+      rule: "hostregexp(`{host:.+}`)"
+      entryPoints:
         - websecure
       service: noop@internal
       tls: {}
 
-{{ if ne (env "CERT_RESOLVER") "" }}
+{{ if ne .Env.CERT_RESOLVER "" }}
 certificatesResolvers:
-  le:
+  {{ .Env.CERT_RESOLVER }}:
     acme:
-      email: {{ env "LETSENCRYPT_EMAIL" }}
+      email: {{ .Env.LETSENCRYPT_EMAIL }}
       storage: /letsencrypt/acme.json
       httpChallenge:
         entryPoint: web

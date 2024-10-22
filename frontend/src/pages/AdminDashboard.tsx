@@ -1,58 +1,65 @@
-// src/pages/AdminDashboard.tsx
-import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
-import { handleApiError } from '../utils/errorHandler';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [projectsRes, blogPostsRes] = await Promise.all([
-          api.get('/projects'),
-          api.get('/blog-posts')
-        ]);
-        setProjects(projectsRes.data);
-        setBlogPosts(blogPostsRes.data);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', handleApiError(error));
-      }
-    };
-    fetchData();
-  }, []);
-
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-      
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Projects</h2>
-        <ul className="space-y-2">
-          {projects.map(project => (
-            <li key={project.id} className="bg-white shadow rounded p-4">
-              <h3 className="text-xl font-semibold">{project.name}</h3>
-              <p className="text-gray-600">{project.description}</p>
-              <p className="text-sm text-gray-500 mt-2">Status: {project.status}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Recent Blog Posts</h2>
-        <ul className="space-y-2">
-          {blogPosts.map(post => (
-            <li key={post.id} className="bg-white shadow rounded p-4">
-              <h3 className="text-xl font-semibold">{post.title}</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                By {post.author} on {new Date(post.createdAt).toLocaleDateString()}
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Blog Management */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Blog Management</h2>
+          <ul className="space-y-2">
+            <li>
+              <Link 
+                to="/admin/blog/new"
+                className="text-primary-600 hover:text-primary-800"
+              >
+                Create New Post
+              </Link>
             </li>
-          ))}
-        </ul>
-      </section>
+            <li>
+              <Link 
+                to="/blog"
+                className="text-primary-600 hover:text-primary-800"
+              >
+                View All Posts
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* User Management */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">User Management</h2>
+          <ul className="space-y-2">
+            <li>
+              <Link 
+                to="/admin/users"
+                className="text-primary-600 hover:text-primary-800"
+              >
+                Manage Users
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Site Settings */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Site Settings</h2>
+          <ul className="space-y-2">
+            <li>
+              <Link 
+                to="/admin/settings"
+                className="text-primary-600 hover:text-primary-800"
+              >
+                General Settings
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };

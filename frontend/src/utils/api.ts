@@ -18,6 +18,8 @@ api.interceptors.response.use(
         await api.post('/auth/refresh-token');
         return api(error.config);
       } catch (refreshError) {
+        // If refresh fails, redirect to login
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

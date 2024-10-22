@@ -1,22 +1,19 @@
-// src/api/auth.ts
-import apiClient from './client';
+import api from '../utils/api';
+import { User } from '../types/global';
 
-export const login = async (email: string, password: string): Promise<ApiResponse<User>> => {
-  const response = await apiClient.post<ApiResponse<User>>('/auth/login', { email, password });
-  return response.data;
+export const login = async (email: string, password: string): Promise<User> => {
+  const response = await api.post<{ message: string; user: User }>('/auth/login', { email, password });
+  return response.data.user;
 };
 
-export const loginDemo = async (username: string, password: string, projectId: string): Promise<ApiResponse<DemoUser>> => {
-  const response = await apiClient.post<ApiResponse<DemoUser>>('/auth/login-demo', { username, password, projectId });
-  return response.data;
+export const logout = async (): Promise<void> => {
+  await api.post('/auth/logout');
 };
 
-export const logout = async (): Promise<ApiResponse<null>> => {
-  const response = await apiClient.post<ApiResponse<null>>('/auth/logout');
-  return response.data;
+export const register = async (username: string, email: string, password: string): Promise<void> => {
+  await api.post('/auth/register', { username, email, password });
 };
 
-export const refreshToken = async (): Promise<ApiResponse<null>> => {
-  const response = await apiClient.post<ApiResponse<null>>('/auth/refresh-token');
-  return response.data;
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  await api.put('/auth/change-password', { currentPassword, newPassword });
 };

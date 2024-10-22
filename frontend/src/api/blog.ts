@@ -1,33 +1,26 @@
-// src/api/blog.ts
-import apiClient from './client';
-import { PaginatedResponse } from '../types/api'; // @types doesnt work :<
+import api from '../utils/api';
+import { BlogPost, PaginatedBlogPosts } from '../types/global';
 
-export const createBlogPost = async (postData: Omit<BlogPost, 'id' | 'author' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<BlogPost>> => {
-  const response = await apiClient.post<ApiResponse<BlogPost>>('/blog', postData);
+export const getAllBlogPosts = async (page: number = 1): Promise<PaginatedBlogPosts> => {
+  const response = await api.get<PaginatedBlogPosts>('/blog', { params: { page } });
   return response.data;
 };
 
-export const getBlogPosts = async (page: number = 1, limit: number = 10, tag?: string): Promise<ApiResponse<PaginatedResponse<BlogPost>>> => {
-  const response = await apiClient.get<ApiResponse<PaginatedResponse<BlogPost>>>('/blog', { params: { page, limit, tag } });
+export const getBlogPostById = async (id: string): Promise<BlogPost> => {
+  const response = await api.get<BlogPost>(`/blog/${id}`);
   return response.data;
 };
 
-export const getBlogPostById = async (id: string): Promise<ApiResponse<BlogPost>> => {
-  const response = await apiClient.get<ApiResponse<BlogPost>>(`/blog/${id}`);
+export const createBlogPost = async (formData: FormData): Promise<BlogPost> => {
+  const response = await api.post<BlogPost>('/blog', formData);
   return response.data;
 };
 
-export const updateBlogPost = async (id: string, postData: Partial<BlogPost>): Promise<ApiResponse<BlogPost>> => {
-  const response = await apiClient.put<ApiResponse<BlogPost>>(`/blog/${id}`, postData);
+export const updateBlogPost = async (id: string, formData: FormData): Promise<BlogPost> => {
+  const response = await api.put<BlogPost>(`/blog/${id}`, formData);
   return response.data;
 };
 
-export const deleteBlogPost = async (id: string): Promise<ApiResponse<null>> => {
-  const response = await apiClient.delete<ApiResponse<null>>(`/blog/${id}`);
-  return response.data;
-};
-
-export const searchBlogPosts = async (query: string): Promise<ApiResponse<BlogPost[]>> => {
-  const response = await apiClient.get<ApiResponse<BlogPost[]>>('/blog/search', { params: { query } });
-  return response.data;
+export const deleteBlogPost = async (id: string): Promise<void> => {
+  await api.delete(`/blog/${id}`);
 };

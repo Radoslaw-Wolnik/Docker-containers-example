@@ -1,8 +1,6 @@
-// src/pages/SiteSettingsAdmin.tsx
 import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
-import { handleApiError } from '../utils/errorHandler';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { getSiteSettings, updateSiteSettings, updateSEOSettings, updateSocialMediaLinks } from '../api/siteSettings';
+import { SiteSettings } from '../types/global';
 
 const SiteSettingsAdmin: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -13,137 +11,160 @@ const SiteSettingsAdmin: React.FC = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await api.get<ApiResponse<SiteSettings>>('/site-settings');
-        setSettings(response.data.data);
+        const data = await getSiteSettings();
+        setSettings(data);
       } catch (err) {
-        setError(handleApiError(err));
+        setError('Failed to fetch site settings');
       } finally {
         setLoading(false);
       }
     };
+
     fetchSettings();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!settings) return;
+
     setError('');
     setSuccess('');
+    
     try {
-      await api.put<ApiResponse<SiteSettings>>('/site-settings', settings);
+      await updateSiteSettings(settings);
       setSuccess('Settings updated successfully');
     } catch (err) {
-      setError(handleApiError(err));
+      setError('Failed to update settings');
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setSettings(prev => prev ? { ...prev, [name]: value } : null);
-  };
-
-  const handleSocialMediaChange = (platform: 'facebook' | 'twitter' | 'instagram') => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSettings(prev => prev ? {
-      ...prev,
-      socialMediaLinks: {
-        ...prev.socialMediaLinks,
-        [platform]: e.target.value
-      }
-    } : null);
-  };
-
-  if (loading) return <LoadingSpinner />;
-  if (!settings) return <p className="text-red-500">Failed to load settings</p>;
+  if (loading) return <div>Loading...</div>;
+  if (!settings) return <div>Error loading settings</div>;
 
   return (
-    <div className="container mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      <h1 className="text-3xl font-bold mb-5">Site Settings</h1>
-      {error && <p className="text-red-500 mb-5">{error}</p>}
-      {success && <p className="text-green-500 mb-5">{success}</p>}
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold mb-8">Site Settings</h1>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">{error}</div>
+      )}
+      {success && (
+        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
+          {success}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="siteName" className="block mb-1 font-semibold">Site Name</label>
-          <input
-            type="text"
-            id="siteName"
-            name="siteName"
-            value={settings.siteName}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
+        {/* General Settings */}
+        <section className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">General Settings</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label 
+                htmlFor="siteName" 
+                className="block text-sm font-medium text-gray-700"
+              >
+                Site Name
+              </label>
+              <input
+                type="text"
+                id="siteName"
+                value={settings.siteName}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  siteName: e.target.value
+                })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+
+            <div>
+              <label 
+                htmlFor="siteDescription" 
+                className="block text-sm font-medium text-gray-700"
+              >
+                Site Description
+              </label>
+              <textarea
+                id="siteDescription"
+                value={settings.siteDescription}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  siteDescription: e.target.value
+                })}
+                rows={3}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* SEO Settings */}
+        <section className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">SEO Settings</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label 
+                htmlFor="siteKeywords" 
+                className="block text-sm font-medium text-gray-700"
+              >
+                Keywords (comma-separated)
+              </label>
+              <input
+                type="text"
+                id="siteKeywords"
+                value={settings.siteKeywords.join(', ')}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  siteKeywords: e.target.value.split(',').map(k => k.trim())
+                })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Social Media Links */}
+        <section className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Social Media Links</h2>
+          
+          <div className="space-y-4">
+            {Object.entries(settings.socialMediaLinks).map(([platform, url]) => (
+              <div key={platform}>
+                <label 
+                  htmlFor={platform} 
+                  className="block text-sm font-medium text-gray-700 capitalize"
+                >
+                  {platform}
+                </label>
+                <input
+                  type="url"
+                  id={platform}
+                  value={url || ''}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    socialMediaLinks: {
+                      ...settings.socialMediaLinks,
+                      [platform]: e.target.value
+                    }
+                  })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Save Changes
+          </button>
         </div>
-        <div>
-          <label htmlFor="siteDescription" className="block mb-1 font-semibold">Site Description</label>
-          <textarea
-            id="siteDescription"
-            name="siteDescription"
-            value={settings.siteDescription}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-            rows={3}
-          />
-        </div>
-        <div>
-          <label htmlFor="siteKeywords" className="block mb-1 font-semibold">Site Keywords (comma-separated)</label>
-          <input
-            type="text"
-            id="siteKeywords"
-            name="siteKeywords"
-            value={settings.siteKeywords.join(', ')}
-            onChange={(e) => setSettings(prev => prev ? { ...prev, siteKeywords: e.target.value.split(',').map(k => k.trim()) } : null)}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="logoUrl" className="block mb-1 font-semibold">Logo URL</label>
-          <input
-            type="text"
-            id="logoUrl"
-            name="logoUrl"
-            value={settings.logoUrl}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Social Media Links</h2>
-        <div>
-          <label htmlFor="facebook" className="block mb-1 font-semibold">Facebook</label>
-          <input
-            type="text"
-            id="facebook"
-            name="socialMediaLinks.facebook"
-            value={settings.socialMediaLinks.facebook || ''}
-            onChange={handleSocialMediaChange('facebook')}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="twitter" className="block mb-1 font-semibold">Twitter</label>
-          <input
-            type="text"
-            id="twitter"
-            name="socialMediaLinks.twitter"
-            value={settings.socialMediaLinks.twitter || ''}
-            onChange={handleSocialMediaChange('twitter')}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="instagram" className="block mb-1 font-semibold">Instagram</label>
-          <input
-            type="text"
-            id="instagram"
-            name="socialMediaLinks.instagram"
-            value={settings.socialMediaLinks.instagram || ''}
-            onChange={handleSocialMediaChange('instagram')}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-        <button
-          type="submit"
-          className="mt-6 px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-        >
-          Save Settings
-        </button>
       </form>
     </div>
   );

@@ -1,41 +1,50 @@
-// src/pages/BlogSearchResults.tsx
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import api from '../utils/api';
-import { handleApiError } from '../utils/errorHandler';
+import { useSearchParams } from 'react-router-dom';
+import { searchBlogPosts } from '../api/blog';
 import BlogPostCard from '../components/BlogPostCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import BlogSearch from '../components/BlogSearch';
+import { BlogPost } from '../types/global';
 
 const BlogSearchResults: React.FC = () => {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
+  const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchSearchResults = async () => {
+    const fetchResults = async () => {
+      setLoading(true);
       try {
-        const response = await api.get(`/blog/search?query=${encodeURIComponent(query)}`);
-        setPosts(response.data);
+        const response = await searchBlogPosts(query);
+        setPosts(response);
       } catch (err) {
-        setError(handleApiError(err));
+        setError('Failed to fetch search results');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSearchResults();
+    if (query) {
+      fetchResults();
+    }
   }, [query]);
 
-  if (loading) return <LoadingSpinner />;
-  if (error) return <p className="text-red-500">{error}</p>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <div className="container mx-auto mt-10">
-      <h1 className="text-3xl font-bold mb-5">Search Results for &quot;{query}&quot;</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold mb-6">Search Results</h1>
+      
+      <div className="mb-8">
+        <BlogSearch />
+      </div>
+
+      <p className="text-gray-600 mb-6">
+        Found {posts.length} results for "{query}"
+      </p>
+
       {posts.length === 0 ? (
         <p>No results found.</p>
       ) : (

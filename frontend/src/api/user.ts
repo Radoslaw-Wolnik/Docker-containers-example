@@ -1,38 +1,21 @@
-// src/api/user.ts
-import apiClient from './client';
-import { PaginatedResponse, UserWithToken } from '../types/api'; // @types doesnt work :<
+import api from '../utils/api';
+import { User } from '../types/global';
 
-export const getUserProfile = async (): Promise<ApiResponse<User>> => {
-  const response = await apiClient.get<ApiResponse<User>>('/users/profile');
+export const getUserProfile = async (): Promise<User> => {
+  const response = await api.get<User>('/users/me');
   return response.data;
 };
 
-export const updateProfile = async (userData: Partial<User>): Promise<ApiResponse<User>> => {
-  const response = await apiClient.put<ApiResponse<User>>('/users/profile', userData);
+export const updateProfile = async (userData: Partial<User>): Promise<User> => {
+  const response = await api.put<User>('/users/profile', userData);
   return response.data;
 };
 
-export const getAllUsers = async (page: number = 1, limit: number = 10): Promise<ApiResponse<PaginatedResponse<User>>> => {
-  const response = await apiClient.get<ApiResponse<PaginatedResponse<User>>>('/users', { params: { page, limit } });
-  return response.data;
+export const uploadProfilePicture = async (formData: FormData): Promise<string> => {
+  const response = await api.put<{ message: string; profilePicture: string }>('/users/profile-picture', formData);
+  return response.data.profilePicture;
 };
 
-export const getUserById = async (id: string): Promise<ApiResponse<User>> => {
-  const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
-  return response.data;
-};
-
-export const deleteUser = async (id: string): Promise<ApiResponse<null>> => {
-  const response = await apiClient.delete<ApiResponse<null>>(`/users/${id}`);
-  return response.data;
-};
-
-export const registerUser = async (userData: Omit<User, 'id' | 'role'>): Promise<ApiResponse<UserWithToken>> => {
-  const response = await apiClient.post<ApiResponse<UserWithToken>>('/users/register', userData);
-  return response.data;
-};
-
-export const changePassword = async (currentPassword: string, newPassword: string): Promise<ApiResponse<{ message: string }>> => {
-  const response = await apiClient.put<ApiResponse<{ message: string }>>('/users/change-password', { currentPassword, newPassword });
-  return response.data;
+export const deactivateAccount = async (): Promise<void> => {
+  await api.post('/users/deactivate');
 };

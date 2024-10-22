@@ -1,8 +1,6 @@
-// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { handleApiError } from '../utils/errorHandler';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,7 +16,7 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(handleApiError(err));
+      setError('Invalid email or password');
     }
   };
 

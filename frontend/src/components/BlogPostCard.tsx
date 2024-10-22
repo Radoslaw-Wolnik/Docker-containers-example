@@ -1,6 +1,6 @@
-// src/components/BlogPostCard.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { BlogPost } from '../types/global';
 
 interface BlogPostCardProps {
   post: BlogPost;
@@ -15,17 +15,10 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post }) => {
             {post.title}
           </Link>
         </h2>
-        <p className="text-gray-600 mb-4">{post.shortDescription}</p>
+        <p className="text-gray-600 mb-4">{post.content[0].content.substring(0, 100)}...</p>
         <div className="flex justify-between items-center text-sm text-gray-500">
           <span>{post.author}</span>
           <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-        </div>
-        <div className="mt-4">
-          {post.tags.map((tag, index) => (
-            <span key={index} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-              #{tag}
-            </span>
-          ))}
         </div>
       </div>
     </div>

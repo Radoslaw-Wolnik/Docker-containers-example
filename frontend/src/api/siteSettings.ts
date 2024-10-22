@@ -1,27 +1,27 @@
-// src/api/siteSettings.ts
-import apiClient from './client';
+import api from '../utils/api';
+import { SiteSettings } from '../types/global';
 
-export const getSiteSettings = async (): Promise<ApiResponse<SiteSettings>> => {
-  const response = await apiClient.get<ApiResponse<SiteSettings>>('/site-settings');
+export const getSiteSettings = async (): Promise<SiteSettings> => {
+  const response = await api.get<SiteSettings>('/site-settings');
   return response.data;
 };
 
-export const updateSiteSettings = async (settings: Partial<SiteSettings>): Promise<ApiResponse<SiteSettings>> => {
-  const response = await apiClient.put<ApiResponse<SiteSettings>>('/site-settings', settings);
+export const updateSiteSettings = async (settings: Partial<SiteSettings>): Promise<SiteSettings> => {
+  const response = await api.put<SiteSettings>('/site-settings', settings);
   return response.data;
 };
 
-export const updateSEOSettings = async (seoSettings: Pick<SiteSettings, 'siteName' | 'siteDescription' | 'siteKeywords'>): Promise<ApiResponse<SiteSettings>> => {
-  const response = await apiClient.put<ApiResponse<SiteSettings>>('/site-settings/seo', seoSettings);
+export const updateSEOSettings = async (seoSettings: Pick<SiteSettings, 'siteName' | 'siteDescription' | 'siteKeywords'>): Promise<SiteSettings> => {
+  const response = await api.put<SiteSettings>('/site-settings/seo', seoSettings);
   return response.data;
 };
 
-export const updateSocialMediaLinks = async (socialMediaLinks: SiteSettings['socialMediaLinks']): Promise<ApiResponse<SiteSettings>> => {
-  const response = await apiClient.put<ApiResponse<SiteSettings>>('/site-settings/social-media', { socialMediaLinks });
+export const updateSocialMediaLinks = async (socialMediaLinks: SiteSettings['socialMediaLinks']): Promise<SiteSettings> => {
+  const response = await api.put<SiteSettings>('/site-settings/social', { socialMediaLinks });
   return response.data;
 };
 
-export const updateLogo = async (logoUrl: string): Promise<ApiResponse<SiteSettings>> => {
-  const response = await apiClient.put<ApiResponse<SiteSettings>>('/site-settings/logo', { logoUrl });
+export const updateLogo = async (logoUrl: string): Promise<SiteSettings> => {
+  const response = await api.put<SiteSettings>('/site-settings/logo', { logoUrl });
   return response.data;
 };
