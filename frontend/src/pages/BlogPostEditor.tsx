@@ -6,6 +6,7 @@ import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { BlogContent as BlogContentType } from '../types/global';
 
+
 // Supported languages
 const SUPPORTED_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },

@@ -1,3 +1,5 @@
+
+// src/api/siteSettings.ts
 import api from '../utils/api';
 import { SiteSettings } from '../types/global';
 

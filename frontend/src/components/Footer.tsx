@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
                 
                   href="mailto:contact@example.com"
                   className="text-gray-300 hover:text-white"
-                >
+                <a>
                   contact@example.com
                 </a>
               </li>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllUsers, deleteUser } from '../api/user';
+import { getAllUsers, deleteUser } from '../api/admin';
 import { User } from '../types/global';
 
 const UserListAdmin: React.FC = () => {
@@ -15,7 +15,7 @@ const UserListAdmin: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const response = await getAllUsers();
-      setUsers(response.data);
+      setUsers(response);
     } catch (err) {
       setError('Failed to fetch users');
     } finally {

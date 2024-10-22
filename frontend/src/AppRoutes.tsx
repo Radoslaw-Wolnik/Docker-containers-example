@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import BlogList from './pages/BlogList';
 import BlogPost from './pages/BlogPost';
+import BlogPostEditor from './pages/BlogPostEditor';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserProfile from './pages/UserProfile';
@@ -15,9 +16,14 @@ const AppRoutes: React.FC = () => (
     <Route path="/blog/:id" element={<BlogPost />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
-    <Route path="/blog/new" element={<ProtectedRoute> <BlogPostEditor /> </ProtectedRoute>} />
-    <Route path="/blog/:id/edit" element={<ProtectedRoute> <BlogPostEditor /> </ProtectedRoute>} />
-    <Route path="/profile" element={ <ProtectedRoute> <UserProfile /> </ProtectedRoute> } />
+    
+    {/* Protected Routes */}
+    <Route element={<ProtectedRoute />}>
+      <Route path="/blog/new" element={<BlogPostEditor />} />
+      <Route path="/blog/:id/edit" element={ <BlogPostEditor />} />
+      <Route path="/profile" element={ <UserProfile />} />
+    </Route>
+    
   </Routes>
 );
 

@@ -1,8 +1,14 @@
+// src/api/user.ts
 import api from '../utils/api';
 import { User } from '../types/global';
 
 export const getUserProfile = async (): Promise<User> => {
   const response = await api.get<User>('/users/me');
+  return response.data;
+};
+
+export const getOtherUserProfile = async (userId: string): Promise<User> => {
+  const response = await api.get<User>(`/users/${userId}`);
   return response.data;
 };
 

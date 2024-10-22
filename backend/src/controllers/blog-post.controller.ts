@@ -115,3 +115,21 @@ export const deleteBlogPost = async (req: Request, res: Response, next: NextFunc
     next(error);
   }
 };
+
+export const searchBlogPosts = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { query } = req.query;
+    if (typeof query !== 'string') {
+      throw new BadRequestError('Invalid search query');
+    }
+
+    const results = await BlogPost.find(
+      { $text: { $search: query } },
+      { score: { $meta: 'textScore' } }
+    ).sort({ score: { $meta: 'textScore' } });
+
+    res.json(results);
+  } catch (error) {
+    next(error);
+  }
+}

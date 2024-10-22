@@ -1,3 +1,4 @@
+// src/api/auth.ts
 import api from '../utils/api';
 import { User } from '../types/global';
 
@@ -16,4 +17,13 @@ export const register = async (username: string, email: string, password: string
 
 export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
   await api.put('/auth/change-password', { currentPassword, newPassword });
+};
+
+export const updateProfile = async (userData: { username: string; email: string }): Promise<User> => {
+  const response = await api.put<User>('/auth/profile', userData);
+  return response.data;
+};
+
+export const deactivateAccount = async (): Promise<void> => {
+  await api.post('/auth/deactivate');
 };
